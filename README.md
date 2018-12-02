@@ -24,4 +24,5 @@ Po uruchomieniu za pomocą ansible pliku setup.yml powinniśmy otrzymać maszyn�
 # Autorzy
 
 Paweł Lubecki nr albumu 187249
+
 Kamil Michalik nr albumu 187439
