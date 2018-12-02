@@ -1,0 +1,109 @@
+---
+- hosts: db_nodes
+  become: yes
+  vars:
+    database_name: adsk_wordpress
+    database_user: bob
+    database_password: ''
+  tasks:
+    - name: "Install db server"
+      yum:
+        name: "{{item}}"
+      with_items:
+        - mariadb
+        - mariadb-server
+    - service:
+        name: mariadb
+        state: started
+    - name: "install additionall mysql python dependencies"
+      yum: 
+        name: MySQL-python
+        state: present
+    - name: "set up wordpress database"
+      mysql_db:
+        name: "{{database_name}}"
+        state: present
+    - name: "setup user"
+      mysql_user:
+        name: "{{database_user}}"
+        password: "{{database_password}}"
+        priv: '*.*:ALL'
+        state: present
+        host: '%'
+- hosts: web_nodes
+  become: yes
+  vars:
+    blog_path: /var/www/wordpress
+    database_name: adsk_wordpress
+    database_user: bob
+    database_password: ''
+    database_host: 172.31.26.220
+    wordpress_archive_url: https://pl.wordpress.org/wordpress-4.9.8-pl_PL.tar.gz
+  tasks: 
+    - name: "Install http server"
+      yum:
+        name: httpd
+        state: latest
+    - name: "install php module"
+      yum:
+        name: "{{item}}"
+        state: latest
+      with_items:
+        - php
+        - php-mysql
+    - name: "download wordpress"
+      get_url:
+        url: "{{wordpress_archive_url}}"
+        dest: ~/wordpress.tar.gz
+    - name: "Unpack WordPress archive"
+      unarchive:
+        src: ~/wordpress.tar.gz
+        dest: /var/www/
+        remote_src: yes
+    - name: "configure apache vhost"
+      template:
+        src: templates/vhosts.conf
+        dest: /etc/httpd/conf.d/blog.conf
+    - name: "start httpd server"
+      service:
+        name: httpd
+        state: restarted
+    - name: "copy wordpress"
+      template:
+        src: templates/wp-config.php
+        dest: "{{blog_path}}/wp-config.php"
+- hosts: stats_nodes
+  become: yes
+  vars:
+    telegraf_url: https://dl.influxdata.com/telegraf/releases/telegraf-1.8.3-1.x86_64.rpm
+    metric_store_ip: 172.31.30.98
+    influxdb_url: https://dl.influxdata.com/influxdb/releases/influxdb-1.7.1.x86_64.rpm
+    grafana_url: https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-5.3.4-1.x86_64.rpm
+  tasks:
+    - name: "install influx"
+      yum:
+        name: "{{influxdb_url}}"
+        state: present
+    - service:
+        name: influxdb
+        state: started
+    - name: "install telegraf"
+      yum:
+        name: "{{telegraf_url}}"
+        state: present
+    - name: "copy cfg into dest"
+      template:
+        src: templates/telegraf.conf
+        dest: /etc/telegraf/telegraf.conf
+    - name: "start telegraf"
+      service:
+        name: "telegraf"
+        state: restarted
+    - yum: 
+        name: "{{grafana_url}}"
+        state: present
+    - service:
+        name: "grafana-server"
+        state: started
+
+    
