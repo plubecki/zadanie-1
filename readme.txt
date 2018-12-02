@@ -3,7 +3,7 @@ Praca wykonana przez studentów kierunku Informatyka Stosowana:
 Paweł Lubecki nr albumu 187249
 Kamil Michalik nr albumu 187439
 
-Jest to kod implementujący instalację następujšcych aplikacji: wordpress, telegraf, graphana
+Jest to kod implementujący instalację następujących aplikacji: wordpress, telegraf, graphana
 Wykorzystywane są trzy różne maszyny wirtualne. Przed kompilacją należy utworzyć maszyny i zmienić IP w pliku hosts.ini na odpowiadajšce dla wybranych maszyn.
 Konieczne również jest zmienienie prywatnych adresów ip w pliku setup.yml na odpowiadajšce dla wybranych maszyn.
 
